@@ -4,8 +4,29 @@ import { FaSearch, FaFilter, FaUserCircle, FaUsers, FaCog, FaCommentDots, FaPlus
 import { MdOutlineLabel } from 'react-icons/md';
 import { useState } from 'react';
 
-const chats = [
-  // Example chat data, replace with real data from Supabase later
+type Chat = {
+  id: number;
+  name: string;
+  lastMessage: string;
+  date: string;
+  unread: boolean;
+  label?: string;
+  phone: string;
+  avatar?: string;
+};
+
+type Message = {
+  id: number;
+  chatId: number;
+  sender: string;
+  senderType: 'me' | 'other';
+  text: string;
+  time: string;
+  date: string;
+  phone: string;
+};
+
+const initialChats: Chat[] = [
   {
     id: 1,
     name: 'Test Skope Final 5',
@@ -14,7 +35,7 @@ const chats = [
     unread: false,
     label: 'Demo',
     phone: '+91 99718 44008',
-    avatar: '', // can use a placeholder or react-icons
+    avatar: '',
   },
   {
     id: 2,
@@ -24,28 +45,19 @@ const chats = [
     unread: true,
     label: 'internal',
     phone: '+91 99718 44008',
-    avatar: '', // can use a placeholder or react-icons
+    avatar: '',
   },
   // ...add more as needed
 ];
 
-type Message = {
-  id: number;
-  sender: string;
-  senderType: 'me' | 'other';
-  text: string;
-  time: string;
-  date: string;
-  phone: string;
-};
-
-const messages: Message[] = [
-  { id: 1, sender: 'Roshnaq Airtel', senderType: 'other', text: 'Hello, South Euna!', time: '08:01', date: '22-01-2025', phone: '+91 63846 47925' },
-  { id: 2, sender: 'Roshnaq Airtel', senderType: 'other', text: 'Hello, Livonia!', time: '08:01', date: '23-01-2025', phone: '+91 63846 47925' },
-  { id: 3, sender: 'Roshnaq Airtel', senderType: 'other', text: 'CDERT', time: '09:49', date: '23-01-2025', phone: '+91 63846 47925' },
-  { id: 4, sender: 'Periskope', senderType: 'me', text: 'hello', time: '12:07', date: '23-01-2025', phone: '+91 99718 44008' },
-  { id: 5, sender: 'Periskope', senderType: 'me', text: 'test el centro', time: '09:49', date: '23-01-2025', phone: '+91 99718 44008' },
-  { id: 6, sender: 'Periskope', senderType: 'me', text: 'testing', time: '09:49', date: '23-01-2025', phone: '+91 99718 44008' },
+const initialMessages: Message[] = [
+  { id: 1, chatId: 2, sender: 'Roshnaq Airtel', senderType: 'other', text: 'Hello, South Euna!', time: '08:01', date: '22-01-2025', phone: '+91 63846 47925' },
+  { id: 2, chatId: 2, sender: 'Roshnaq Airtel', senderType: 'other', text: 'Hello, Livonia!', time: '08:01', date: '23-01-2025', phone: '+91 63846 47925' },
+  { id: 3, chatId: 2, sender: 'Roshnaq Airtel', senderType: 'other', text: 'CDERT', time: '09:49', date: '23-01-2025', phone: '+91 63846 47925' },
+  { id: 4, chatId: 2, sender: 'Periskope', senderType: 'me', text: 'hello', time: '12:07', date: '23-01-2025', phone: '+91 99718 44008' },
+  { id: 5, chatId: 2, sender: 'Periskope', senderType: 'me', text: 'test el centro', time: '09:49', date: '23-01-2025', phone: '+91 99718 44008' },
+  { id: 6, chatId: 2, sender: 'Periskope', senderType: 'me', text: 'testing', time: '09:49', date: '23-01-2025', phone: '+91 99718 44008' },
+  { id: 7, chatId: 1, sender: 'Support2', senderType: 'other', text: "This doesn't go on Tuesday...", time: '10:00', date: '28-02-2025', phone: '+91 99718 44008' },
 ];
 
 function groupMessagesByDate(messages: Message[]) {
@@ -57,16 +69,30 @@ function groupMessagesByDate(messages: Message[]) {
   return grouped;
 }
 
-function ChatArea() {
+function ChatArea({
+  chat,
+  messages,
+  onSendMessage,
+}: {
+  chat: Chat;
+  messages: Message[];
+  onSendMessage: (text: string) => void;
+}) {
   const [input, setInput] = useState('');
   const groupedMessages = groupMessagesByDate(messages);
+
+  const handleSend = () => {
+    if (input.trim() === '') return;
+    onSendMessage(input.trim());
+    setInput('');
+  };
 
   return (
     <section className="flex flex-col h-full bg-[#f7f8fa]">
       {/* Header */}
       <header className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-white">
         <div>
-          <h2 className="font-bold text-lg text-gray-800">Test El Centro</h2>
+          <h2 className="font-bold text-lg text-gray-800">{chat.name}</h2>
           <div className="text-xs text-gray-500">
             Roshnaq Airtel, Roshnaq Jio, Bharat Kumar Ramesh, Periskope
           </div>
@@ -119,9 +145,10 @@ function ChatArea() {
           placeholder="Message..."
           value={input}
           onChange={e => setInput(e.target.value)}
+          onKeyDown={e => { if (e.key === 'Enter') handleSend(); }}
         />
         <button className="text-gray-400 hover:text-green-500"><FaMicrophone size={20} /></button>
-        <button className="bg-green-500 text-white p-2 rounded-lg hover:bg-green-600 transition">
+        <button className="bg-green-500 text-white p-2 rounded-lg hover:bg-green-600 transition" onClick={handleSend}>
           <svg width="24" height="24" fill="none"><path d="M4 20L20 12L4 4V10L16 12L4 14V20Z" fill="currentColor"/></svg>
         </button>
         <div className="ml-2 flex items-center gap-1 border border-gray-200 rounded-lg px-2 py-1 cursor-pointer">
@@ -134,7 +161,30 @@ function ChatArea() {
 }
 
 export default function HomePage() {
-  const [selectedChat, setSelectedChat] = useState(chats[0]?.id);
+  const [selectedChat, setSelectedChat] = useState(initialChats[0]?.id);
+  const [messages, setMessages] = useState<Message[]>(initialMessages);
+
+  const currentChat = initialChats.find(chat => chat.id === selectedChat)!;
+  const currentMessages = messages.filter(msg => msg.chatId === selectedChat);
+
+  const handleSendMessage = (text: string) => {
+    const now = new Date();
+    const date = now.toLocaleDateString('en-GB').split('/').join('-');
+    const time = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    setMessages(prev => [
+      ...prev,
+      {
+        id: prev.length + 1,
+        chatId: selectedChat,
+        sender: 'Periskope',
+        senderType: 'me',
+        text,
+        time,
+        date,
+        phone: '+91 99718 44008',
+      },
+    ]);
+  };
 
   return (
     <div className="flex h-screen bg-[#f7f8fa]">
@@ -163,7 +213,7 @@ export default function HomePage() {
         </div>
         {/* Chat List */}
         <nav className="flex-1 overflow-y-auto">
-          {chats.map(chat => (
+          {initialChats.map(chat => (
             <button
               key={chat.id}
               onClick={() => setSelectedChat(chat.id)}
@@ -199,7 +249,7 @@ export default function HomePage() {
       </aside>
       {/* Main Chat Area */}
       <main className="flex-1 flex flex-col">
-        <ChatArea />
+        <ChatArea chat={currentChat} messages={currentMessages} onSendMessage={handleSendMessage} />
       </main>
     </div>
   );
